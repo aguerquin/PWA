@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {  
+  id          Int       @id @default(autoincrement())
+  email       String?
+  username    String    @unique
+  bio         String?
+  recipes     Recipe[]
+  password    String?
+  refreshToken String?
+  recipeLikes       LikeRecipe[]
+
+  followers   Follower[] @relation("UserFollowers")
+  following   Follower[] @relation("UserFollowing")
+
+  subscriptions Subscription[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // guestExpireAt DateTime?
+
+  @@map("users")
+}
+
+model Recipe {
+  id          Int       @id @default(autoincrement())
+  author      User      @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  userId      Int
+  imageUrl    String?   @default("https://w7.pngwing.com/pngs/818/61/png-transparent-knife-fork-plate-spoon-knife-plate-logo-fork.png")
+  cookTime    String
+  likes       Int?      @default(0)
+  category    String?
+  date        DateTime  @default(now())
+  ingredients Json      @default("{}")
+  steps       String[]
+  recipeLikes       LikeRecipe[]
+}
+
+model LikeRecipe {
+  userId    Int
+  recipeId  Int
+  user      User   @relation(fields: [userId], references: [id])
+  recipe    Recipe @relation(fields: [recipeId], references: [id])
+
+  @@id([userId, recipeId]) // Ensures a unique like per user per recipe
+}
+
+model Follower {
+  id          Int   @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  follower    User  @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User  @relation("UserFollowing", fields: [followingId], references: [id])
+  @@unique([followerId, followingId])
+}
+
+model Subscription {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int
+  endpoint     String
+  keys         Json
+  expirationTime DateTime?
+  createdAt    DateTime @default(now())
+}

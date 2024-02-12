@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+  app:
+    env_file: .dev.env
+    container_name: nestjs_api_dev
+    image: nestjs-api-dev:1.0.0
+    build:
+      context: .
+      target: development
+    depends_on:
+      - db
+    command: npm run start:dev
+    # command: npm run start:debug
+
+  # db:
+  #   container_name: db
+  #   # image: mongo:latest
+  #   build: ./mongodb_rs
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: mongo
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #     MONGO_INITDB_DATABASE: nest
+  #     MONGO_REPLICA_HOST: localhost
+  #     MONGO_REPLICA_PORT: "27017"
+  #   ports:
+  #     - 27017:27017
+  #   networks:
+  #     - nestjs-network
+  #   volumes:
+  #     - ./database:/data/db
+
+
+  db:
+    image: postgres:13-alpine
+    container_name: db
+    restart: always
+    env_file: .dev.env
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - nestjs-network
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin4_container
+  #   restart: always
+  #   ports:
+  #     - "8888:80"
+  #   env_file: .dev.env
+  #   volumes:
+  #     - ./pgadmin-data:/var/lib/pgadmin
+  #   networks:
+  #     - nestjs-network
+  #   depends_on:
+  #     - db

@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+  app:
+    env_file: .prod.env
+    container_name: nestjs_api_prod
+    image: nestjs-api-prod:1.0.0
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: production
+    restart: unless-stopped
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+      - 9229:9229
+    networks:
+      - nestjs-network
+    
+  db:
+    image: postgres:13-alpine
+    container_name: db
+    restart: always
+    env_file: .prod.env
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - nestjs-network
+
+networks:
+  nestjs-network:
+    # driver: bridge
